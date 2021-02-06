@@ -1,14 +1,16 @@
 #%%
+import datetime as dt
 from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import os
 import psycopg2
+import pytz
 
 app = Flask(__name__)
 CORS(app)
 
-ENV = 'prod'
+ENV = 'dev'
 
 if ENV == 'dev':
     app.debug = True
@@ -27,7 +29,8 @@ class Comment(db.Model):
     __tablename__ = 'comment'
     _id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(30), nullable=False, unique=True)
-    comment = db.Column(db.Text())
+    comment = db.Column(db.Text(), nullable=False)
+    created_date = db.Column(db.DateTime, default=dt.datetime.utcnow)
 
     def __init__(self, name, comment):
         self.name = name
@@ -52,7 +55,8 @@ def comments():
     return {
         comment._id: {
             'name':comment.name, 
-            'comment':comment.comment
+            'comment':comment.comment,
+            'created_date':comment.created_date.replace(tzinfo=dt.timezone.utc).strftime('%Y-%m-%d %H:%M:%S %z')
         } for comment in comments
     }
 
