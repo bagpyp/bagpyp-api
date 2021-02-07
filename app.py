@@ -3,6 +3,7 @@ import datetime as dt
 from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+import json
 import os
 import psycopg2
 import pytz
@@ -13,7 +14,6 @@ CORS(app)
 ENV = 'prod'
 
 if ENV == 'dev':
-    app.debug = True
     # !export DATABASE_URL=$(heroku config:get DATABASE_URL)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://gyoqwfjsduneih:87d63380e16241bb8b244798c7ce53b2055b50c7bcf92a9b3a626dc11d30e781@ec2-75-101-232-85.compute-1.amazonaws.com:5432/dcspke83naf934'
 
@@ -48,7 +48,8 @@ def index():
 @app.route('/comments', methods=['GET','POST'])
 def comments():
     if request.method == 'POST':
-        data = request.get_json()
+        data = json.loads(request.get_data())
+        print(data)
         db.session.add(Comment(data['name'], data['comment']))
         db.session.commit()
     comments = Comment.query.all()
@@ -56,9 +57,9 @@ def comments():
         comment._id: {
             'name':comment.name, 
             'comment':comment.comment,
-            'created_date':comment.created_date.replace(tzinfo=dt.timezone.utc).strftime('%Y-%m-%d %H:%M:%S %z')
+            'created_date':comment.created_date.replace(tzinfo=dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
         } for comment in comments
     }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=(ENV=='dev'))
