@@ -49,7 +49,6 @@ def index():
 def comments():
     if request.method == 'POST':
         data = json.loads(request.get_data())
-        print(data)
         db.session.add(Comment(data['name'], data['comment']))
         db.session.commit()
     comments = Comment.query.all()
