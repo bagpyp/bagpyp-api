@@ -11,17 +11,15 @@ import pytz
 app = Flask(__name__)
 CORS(app)
 
-ENV = 'prod'
-
+ENV = 'production'
 if ENV == 'dev':
-    # !export DATABASE_URL=$(heroku config:get DATABASE_URL)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://gyoqwfjsduneih:87d63380e16241bb8b244798c7ce53b2055b50c7bcf92a9b3a626dc11d30e781@ec2-75-101-232-85.compute-1.amazonaws.com:5432/dcspke83naf934'
-
+    os.system("export FLASK_ENV=development")
+    if 'DATABASE_URL' not in os.environ:
+        os.system("export DATABASE_URL=$(heroku config:get DATABASE_URL)")
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
 
 
@@ -51,7 +49,7 @@ def comments():
         data = json.loads(request.get_data())
         db.session.add(Comment(data['name'], data['comment']))
         db.session.commit()
-    comments = Comment.query.all()
+    comments = Comment.query.all()        
     return {
         comment._id: {
             'name':comment.name, 

@@ -1,4 +1,4 @@
-from app import app
+from app import app, ENV
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=(ENV=='dev'))
