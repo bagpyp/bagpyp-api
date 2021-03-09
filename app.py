@@ -11,14 +11,13 @@ import pytz
 app = Flask(__name__)
 CORS(app)
 
-ENV = 'production'
+ENV = 'prod'
 if ENV == 'dev':
     os.system("export FLASK_ENV=development")
     if 'DATABASE_URL' not in os.environ:
-        os.system("export DATABASE_URL=$(heroku config:get DATABASE_URL)")
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+        from subprocess import Popen
+        os.environ['DATABASE_URL'] = Popen('echo $(heroku config:get DATABASE_URL)',shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")[:-1]
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
